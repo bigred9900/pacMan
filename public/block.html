@@ -2,28 +2,65 @@
 
 <head>
     <SCRIPT>
-        var flag = 1,
+        var auto = 0,
             pos = 0,
+            flag = 1,
+            direction = 1,
             img = null,
             url = 'http://localhost:3000'; // change this to IP address of server
 
-        function Run() {
-            img = document.getElementById("PacMan");
-            pos += 20;
-            img.style.left = pos + "px";
-            if (flag === 1) {
-                img.src = url + '/pac?id=' + flag; // use flag to choose image
-                flag = 2;
+        function toggleAutoRun(){
+            if(auto) {
+                auto = 0;
             } else {
-                flag = 1;
+                auto = 1
+                Run();
             }
-            // send position data to Server in url
-            fetch(url + '/set?x=' + pos);
         }
+        function Run() {
+            if (auto) {
+                //keypress = document.addeventlistener('keypress');
+                img = document.getElementById("PacMan");
+                let imgWidth = img.width;
+                direction = checkPageBounds(direction, imgWidth);
+                
+                // use direction and flag to chose image
+                img.src = url + '/pac?id=' + direction + '_' + flag;
+                
+                // flip flag
+                if (flag) {
+                    flag = 0;
+                } else {
+                    flag = 1;
+                }
+                
+                // update position based on direction
+                if (direction) {
+                    pos += 20;
+                    img.style.left = pos + "px";
+                } else {
+                    pos -= 20;
+                    img.style.left = pos + 'px';
+                }
+                
+                setTimeout(Run, 200);
+            
+                // send position data to Server in url
+                fetch(url + '/set?x=' + pos);
+            }
+        }
+
+        function checkPageBounds(direction, imgWidth) {
+            let pageWidth = window.innerWidth;
+            if (direction == 1 && pos + imgWidth > pageWidth) direction = 0;
+            if (direction == 0 && pos < 0) direction = 1;
+            return direction;
+        }
+
     </SCRIPT>
 </head>
 
 <body>
-    <p>Click on PacMan and the position will be sent to the server".</p>
-    <img id="PacMan" src='http://localhost:3000/pac?id=2' onclick="Run()" style="position:absolute">
+    <p><u>Click</u> on PacMan to <b>start</b>. Click <u>again</u> to <b>stop</b>. Position info will be sent to the server".</p>
+    <img id="PacMan" src='http://localhost:3000/pac?id=1_0' width='200' onclick="toggleAutoRun()" style="position:absolute">
 </body>
